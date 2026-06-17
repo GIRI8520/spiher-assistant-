@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores student and faculty profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string", "description": "Full name of the user" },
+        "email": { "type": "string", "format": "email", "description": "Official email address" },
+        "photoURL": { "type": "string", "format": "uri", "description": "Profile picture URL" },
+        "role": { "type": "string", "enum": ["student", "faculty", "admin"], "description": "User role in the system" },
+        "department": { "type": "string", "description": "Academic department" },
+        "registerNumber": { "type": "string", "description": "Student register number (optional)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "displayName", "email", "role"]
+    },
+    "Attendance": {
+      "title": "Attendance Record",
+      "description": "Stores daily attendance for students.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string", "description": "Reference to the student's UID" },
+        "studentName": { "type": "string", "description": "Name of the student" },
+        "date": { "type": "string", "format": "date", "description": "Date of attendance (YYYY-MM-DD)" },
+        "status": { "type": "string", "enum": ["present", "absent", "late"], "description": "Attendance status" },
+        "markedBy": { "type": "string", "description": "UID of the faculty who marked it" },
+        "markedAt": { "type": "string", "format": "date-time", "description": "Timestamp when marked" }
+      },
+      "required": ["studentUid", "date", "status", "markedBy"]
+    },
+    "DepartmentInfo": {
+      "title": "Department Information",
+      "description": "Stores details about the BCA department, staff, and facilities.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Department name" },
+        "hod": { "type": "string", "description": "HOD name" },
+        "assistantHod": { "type": "string", "description": "Assistant HOD name" },
+        "staff": { "type": "array", "items": { "type": "string" }, "description": "List of staff members" },
+        "courses": { "type": "array", "items": { "type": "string" }, "description": "List of courses" },
+        "fees": { "type": "object", "description": "Fees structure" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["name", "hod"]
+    },
+    "PlacementInfo": {
+      "title": "Placement Information",
+      "description": "Stores placement statistics and recruiter details.",
+      "type": "object",
+      "properties": {
+        "highestPackage": { "type": "string", "description": "Highest package offered" },
+        "onCampusPlacements": { "type": "number", "description": "Number of on-campus placements" },
+        "recruiters": { "type": "array", "items": { "type": "string" }, "description": "List of recruiting companies" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["highestPackage", "onCampusPlacements"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/attendance/{recordId}": {
+      "schema": "Attendance",
+      "description": "Attendance record documents."
+    },
+    "/department/info": {
+      "schema": "DepartmentInfo",
+      "description": "General department information."
+    },
+    "/placements/stats": {
+      "schema": "PlacementInfo",
+      "description": "Placement statistics."
+    }
+  }
+}

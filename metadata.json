@@ -1,0 +1,7 @@
+{
+  "name": "Remix: AI CHATBOT FOR DEPARTMENT ENQUIRY",
+  "description": "A high-end voice-enabled AI assistant for SPIHER, featuring detailed BCA department info, staff details, placement stats, and quick links to the student portal and fees payment.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

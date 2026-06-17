@@ -4,9 +4,9 @@ const DEPARTMENT_INFO = `
 📌 COLLEGE DETAILS
 College Name: St. Peter’s Institute of Higher Education and Research (SPIHER)
 Accreditation: Accredited by NAAC with 'A+' Grade
-Location: Avadi, Chennai – 600 054, Tamil Nadu  
-Email: info@spiher.ac.in  
-Phone: +91 94456 38085, +91 91505 34663  
+Location: Avadi, Chennai – 600 054, Tamil Nadu
+Email: info@spiher.ac.in
+Phone: +91 94456 38085, +91 91505 34663
 
 📌 BCA DEPARTMENT
 HOD: Dr. R. Latha
@@ -144,30 +144,25 @@ Assistant HOD: Dr. D. Kavitha
 `;
 
 const getApiKey = () => {
-  // In Vite, we check import.meta.env first, then fallback to process.env
-  // The platform often injects GEMINI_API_KEY into the environment
-  const key = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
-              (import.meta as any).env?.GEMINI_API_KEY ||
-              (window as any).process?.env?.GEMINI_API_KEY ||
-              (window as any).process?.env?.API_KEY ||
-              "AIzaSyCDcjbOhJEemfNXxEcbhyi0U5gJxv3WjLA"; // Fallback key provided by user
-  
-  if (!key || key === "undefined" || key === "null" || key.includes("YOUR_API_KEY")) {
+  const key = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (!key) {
+    console.error("VITE_GEMINI_API_KEY missing in environment variables");
     return null;
   }
-  return key.replace(/['"]/g, '').trim();
+  return key.trim();
 };
 
 export async function getChatResponse(userMessage: string) {
   try {
     const apiKey = getApiKey();
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not configured. Please add it to the Secrets panel.");
+      throw new Error("GEMINI_API_KEY is not configured. Please add it to Vercel Environment Variables.");
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = "gemini-3-flash-preview";
-    
+    const model = "gemini-2.0-flash";
+
     const chat = ai.chats.create({
       model,
       config: {
@@ -181,7 +176,7 @@ export async function getChatResponse(userMessage: string) {
         4. Keep answers short and clear.
         5. If user asks about links, provide the exact URL.
         6. If data is not available, say: "I'm sorry, that specific information is not currently in my database. You might find it on the official student portal: https://insproplus.com/stpetersstudent"
-        
+
         NLP & Language Capabilities:
         - You understand Tamil, English, and Tanglish.
         - Respond in the language the user uses.
@@ -206,28 +201,26 @@ export async function getSpeechResponse(text: string) {
     const apiKey = getApiKey();
     if (!apiKey) return null;
 
-    // Clean text: Strip Markdown symbols that might confuse the TTS engine
     const cleanText = text
-      .replace(/(\*\*|__)(.*?)\1/g, '$2') // Strip bold
-      .replace(/(\*|_)(.*?)\1/g, '$2')    // Strip italic
-      .replace(/#+\s/g, '')               // Strip headers
-      .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Strip links
-      .replace(/`{1,3}.*?`{1,3}/g, '')    // Strip code blocks
-      .replace(/[-*+]\s/g, '')            // Strip bullet points
-      .replace(/\n+/g, ' ')               // Replace newlines with spaces
-      .trim();
+     .replace(/(\*\*|__)(.*?)\1/g, '$2')
+     .replace(/(\*|_)(.*?)\1/g, '$2')
+     .replace(/#+\s/g, '')
+     .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+     .replace(/`{1,3}.*?`{1,3}/g, '')
+     .replace(/[-*+]\s/g, '')
+     .replace(/\n+/g, ' ')
+     .trim();
 
     if (cleanText.length === 0) return null;
 
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
+      model: "gemini-2.0-flash",
       contents: [{ parts: [{ text: `Read this naturally: ${cleanText}` }] }],
       config: {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
           voiceConfig: {
-            // 'Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'
             prebuiltVoiceConfig: { voiceName: 'Kore' },
           },
         },
@@ -237,13 +230,10 @@ export async function getSpeechResponse(text: string) {
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     return base64Audio;
   } catch (error: any) {
-    // If it's a 500 error, it's often transient or related to input complexity
     if (error.message?.includes('500') || error.message?.includes('INTERNAL')) {
       console.warn("Gemini TTS encountered a transient internal error (500). Skipping audio for this turn.");
       return null;
     }
-
-    // Log other errors but don't crash the app
     console.error("TTS Service Error:", error);
     return null;
   }

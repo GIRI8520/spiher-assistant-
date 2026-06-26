@@ -201,14 +201,14 @@ export async function getSpeechResponse(text: string) {
     if (!apiKey) return null;
 
     const cleanText = text
-     .replace(/(\*\*|__)(.*?)\1/g, '$2')
-     .replace(/(\*|_)(.*?)\1/g, '$2')
-     .replace(/#+\s/g, '')
-     .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-     .replace(/`{1,3}.*?`{1,3}/g, '')
-     .replace(/[-*+]\s/g, '')
-     .replace(/\n+/g, ' ')
-     .trim();
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    .replace(/#+\s/g, '')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/`{1,3}.*?`{1,3}/g, '')
+    .replace(/[-*+]\s/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
 
     if (cleanText.length === 0) return null;
 

@@ -161,8 +161,7 @@ export async function getChatResponse(userMessage: string) {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = "gemini-2.0-flash";
-
+    const model ="gemini-1.5-flash";
     const chat = ai.chats.create({
       model,
       config: {

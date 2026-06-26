@@ -1,6 +1,6 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
 import './index.css';
 
 // Silence benign Vite WebSocket errors in this environment
@@ -10,7 +10,6 @@ const originalWarn = console.warn;
 const isBenignError = (msg: any): boolean => {
   if (!msg) return false;
   
-  // Extract a string representation of any message or object
   let text = '';
   if (typeof msg === 'string') {
     text = msg;
@@ -85,7 +84,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 window.onerror = (message, source, lineno, colno, error) => {
   if (isBenignError(error) || isBenignError(message)) {
-    return true; // Prevents the error from showing in the console or UI
+    return true; 
   }
   return false;
 };

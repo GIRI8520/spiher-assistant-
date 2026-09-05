@@ -1,136 +1,91 @@
-import React, { useState, useRef, useEffect, useCallback, Component, ErrorInfo, ReactNode } from 'react';
-import {
-  format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths,
-  isToday, parseISO
-} from 'date-fns';
-import {
-  Send, Bot, User, Loader2, GraduationCap, Building2,
-  Users, BookOpen, Briefcase, Mic, MicOff, Volume2,
-  VolumeX, Sparkles, ChevronRight, Info, MapPin, Phone, Mail,
-  MessageCircle, X, Facebook, Twitter, Linkedin, RefreshCcw,
-  LogIn, LogOut, ClipboardCheck, Calendar, CheckCircle2, AlertCircle, ExternalLink, Navigation, Search, Quote,
-  ChevronLeft, XCircle, Info as InfoIcon, FileDown
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import Markdown from 'react-markdown';
-import { jsPDF } from 'jspdf';
-import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
-import { getChatResponse, getSpeechResponse } from './services/gemini';
-import {
-  auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged,
-  doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc,
-  serverTimestamp, Timestamp, OperationType, handleFirestoreError,
-  FirestoreErrorInfo
-} from './firebase';
-import { COURSES, FACULTY, TESTIMONIALS, ACADEMIC_EVENTS } from './constants';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Bot, User, Loader2, Sparkles, GraduationCap } from 'lucide-react';
+import { getChatResponse } from './services/gemini';
 
-// --- BUILD FIX PANNINATHU DA --- ITHU THAAN MUKKIYAM
+// FIX - Build error sari panniyachu
 const VoiceVisualizer = () => null;
-const TypingIndicator = () => null;
-
-// Types for notifications
-type NotificationType = 'success' | 'error' | 'info';
-
-interface Notification {
-  message: string;
-  type: NotificationType;
-  id: number;
-}
+const TypingIndicator = () => {
+  return <div className="flex gap-1 p-2"><span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span><span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></span><span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></span></div>
+};
 
 interface Message {
   id: string;
   role: 'user' | 'model';
   text: string;
-  timestamp: Date;
-  audioUrl?: string;
 }
 
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-    aistudio: {
-      openSelectKey: () => Promise<void>;
-      hasSelectedApiKey: () => Promise<boolean>;
-    };
-  }
-}
+export default function App() {
+  const [messages, setMessages] = useState<Message[]>([
+    { id: '1', role: 'model', text: "Vanakkam! St. Peter's SPIHER Assistant da! En kita BCA Department, HOD Dr. R. Latha, Placements, Fees pathi kekalam da!" }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
+  const handleSend = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim() || isLoading) return;
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-white border border-slate-200 rounded-[2.5rem] p-10 text-center space-y-6 shadow-xl">
-            <div className="w-20 h-20 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center mx-auto">
-              <X className="w-10 h-10" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Something went wrong</h1>
-              <p className="text-slate-500 text-sm leading-relaxed">
-                We encountered an unexpected error. Please try refreshing the page.
-              </p>
-            </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-600/20 transition-all"
-            >
-              Refresh Page
-            </button>
-          </div>
-        </div>
-      );
+    const userMessage: Message = { id: Date.now().toString(), role: 'user', text: input };
+    setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const responseText = await getChatResponse(currentInput);
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'model',
+        text: responseText
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Error da, konjam time kazhichu try pannu da!" }]);
+    } finally {
+      setIsLoading(false);
     }
-    return this.props.children;
-  }
-}
+  };
 
-const NotificationToast = ({ notifications, removeNotification }: { notifications: Notification[], removeNotification: (id: number) => void }) => {
   return (
-    <div className="fixed top-8 right-8 z-[100] flex flex-col gap-3 pointer-events-none">
-      <AnimatePresence>
-        {notifications.map((n) => (
-          <motion.div
-            key={n.id}
-            initial={{ opacity: 0, x: 50, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-            className={`pointer-events-auto p-4 rounded-2xl shadow-2xl border flex items-center gap-3 min-w-[300px] max-w-[400px] ${
-              n.type === 'success'? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
-              n.type === 'error'? 'bg-rose-50 border-rose-200 text-rose-800' :
-              'bg-indigo-50 border-indigo-200 text-indigo-800'
-            }`}
-          >
-            {n.type === 'success'? <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" /> :
-             n.type === 'error'? <XCircle className="w-5 h-5 text-rose-600 shrink-0" /> :
-             <InfoIcon className="w-5 h-5 text-indigo-600 shrink-0" />}
-            <p className="text-sm font-medium leading-tight flex-1">{n.message}</p>
-            <button onClick={() => removeNotification(n.id)} className="p-1 hover:bg-black/5 rounded-lg transition-colors">
-              <X className="w-4 h-4 opacity-40 hover:opacity-100" />
-            </button>
-          </motion.div>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="bg-white border-b p-4 flex items-center gap-3">
+        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><GraduationCap /></div>
+        <div>
+          <h1 className="font-bold text-slate-900">SPIHER Assistant</h1>
+          <p className="text-xs text-slate-500">St. Peter's BCA Department</p>
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-3xl w-full mx-auto">
+        {messages.map((m) => (
+          <div key={m.id} className={`flex gap-3 ${m.role === 'user'? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] p-4 rounded-2xl ${m.role === 'user'? 'bg-indigo-600 text-white' : 'bg-white border shadow-sm text-slate-800'}`}>
+              <p className="text-sm whitespace-pre-wrap">{m.text}</p>
+            </div>
+          </div>
         ))}
-      </AnimatePresence>
+        {isLoading && <div className="flex justify-start"><div className="bg-white border p-4 rounded-2xl shadow-sm"><TypingIndicator /></div></div>}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form onSubmit={handleSend} className="p-4 bg-white border-t sticky bottom-0">
+        <div className="max-w-3xl mx-auto flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="En kita ketpa? Ex: Who is HOD?"
+            className="flex-1 px-4 py-3 bg-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button type="submit" disabled={isLoading} className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center hover:bg-indigo-700 disabled:opacity-50">
+            {isLoading? <Loader2 className="animate-spin" /> : <Send className="w-5 h-5" />}
+          </button>
+        </div>
+      </form>
     </div>
   );
-};
+}

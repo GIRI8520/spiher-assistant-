@@ -47,45 +47,44 @@ export const FACULTY = [
     role: "Head of Department (HOD)",
     bio: "Visionary leader with 20+ years of experience in Computer Applications and Research.",
     email: "lathahod@spiher.ac.in",
-    expertise: "Artificial Intelligence, Data Mining"
+    expertise: ["Artificial Intelligence", "Data Mining"]
   },
   {
     name: "Dr. D. Kavitha",
     role: "Assistant HOD",
     bio: "Dedicated academician specializing in advanced software engineering and cloud computing.",
     email: "kavitha.ca@spiher.ac.in",
-    expertise: "Cloud Computing, Software Engineering"
+    expertise: ["Cloud Computing", "Software Engineering"]
   },
   {
     name: "Mr. Jagadeesh",
     role: "Assistant Professor",
     bio: "Industry expert transition to academia, focusing on full-stack development and devops.",
     email: "jagadeesh.ca@spiher.ac.in",
-    expertise: "Full Stack Development, DevOps"
+    expertise: ["Full Stack Development", "DevOps"]
   },
   {
     name: "Ms. Subashini",
     role: "Assistant Professor",
     bio: "Expert in database management systems and information security.",
     email: "subashini.ca@spiher.ac.in",
-    expertise: "DBMS, Cyber Security"
+    expertise: ["DBMS", "Cyber Security"]
   },
   {
     name: "Ms. Vinotha",
     role: "Assistant Professor",
     bio: "Specialist in mobile application development and user experience design.",
     email: "vinotha.ca@spiher.ac.in",
-    expertise: "Mobile App Dev, UI/UX"
+    expertise: ["Mobile App Dev", "UI/UX"]
   },
   {
     name: "Ms. Vasanthi",
     role: "Assistant Professor",
     bio: "Focuses on theoretical computer science and algorithm design.",
     email: "vasanthi.ca@spiher.ac.in",
-    expertise: "Algorithms, TOC"
+    expertise: ["Algorithms", "TOC"]
   }
 ];
-
 export const TESTIMONIALS = [
   {
     name: "Sneha R.",

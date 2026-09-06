@@ -17,8 +17,7 @@ import {
   FirestoreErrorInfo
 } from './firebase';
 import { FACULTY, FacultyMember } from './constants';
-import { VoiceVisualizer } from './components/VoiceVisualizer';
-import { TypingIndicator } from './components/TypingIndicator';
+
 
 // Types for notifications
 type NotificationType = 'success' | 'error' | 'info';

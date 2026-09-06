@@ -41,50 +41,153 @@ export const COURSES = [
   }
 ];
 
-export const FACULTY = [
+export interface FacultyMember {
+  name: string;
+  role: string;
+  degrees: string;
+  specialization: string;
+  category: string;
+  experience: string;
+  email: string;
+  expertise: string[];
+  courses: string[];
+  office: string;
+  accent: string;
+}
+
+export const FACULTY: FacultyMember[] = [
   {
     name: "Dr. R. Latha",
     role: "Head of Department (HOD)",
-    bio: "Visionary leader with 20+ years of experience in Computer Applications and Research.",
-    email: "lathahod@spiher.ac.in",
-    expertise: ["Artificial Intelligence", "Data Mining"]
+    degrees: "Ph.D., M.C.A., M.Phil., B.Sc.",
+    specialization: "Artificial Intelligence & Data Mining",
+    category: "AI & Data Science",
+    experience: "22+ Years Experience",
+    email: "csahod@spiher.ac.in",
+    expertise: ["Artificial Intelligence", "Data Mining", "Machine Learning", "Big Data Analytics"],
+    courses: ["Ph.D. Research Guidance", "MCA Advanced AI", "BCA AI Fundamentals"],
+    office: "Main Block, Room 201",
+    accent: "from-amber-500 via-indigo-600 to-indigo-800"
   },
   {
     name: "Dr. D. Kavitha",
     role: "Assistant HOD",
-    bio: "Dedicated academician specializing in advanced software engineering and cloud computing.",
+    degrees: "Ph.D., M.C.A., M.E. (CSE)",
+    specialization: "Cloud Computing & Software Engineering",
+    category: "Cloud & Web",
+    experience: "18+ Years Experience",
     email: "kavitha.ca@spiher.ac.in",
-    expertise: ["Cloud Computing", "Software Engineering"]
+    expertise: ["Cloud Computing", "Software Engineering", "Distributed Systems", "Enterprise Architecture"],
+    courses: ["MCA Enterprise Cloud", "BCA Software Engineering", "BCA (General)"],
+    office: "Main Block, Room 202",
+    accent: "from-indigo-600 via-sky-600 to-teal-700"
   },
   {
-    name: "Mr. Jagadeesh",
+    name: "Mr. N. Jagadeesh",
     role: "Assistant Professor",
-    bio: "Industry expert transition to academia, focusing on full-stack development and devops.",
+    degrees: "M.C.A., M.Phil., B.C.A.",
+    specialization: "Full Stack Development & DevOps",
+    category: "Cloud & Web",
+    experience: "12+ Years Experience",
     email: "jagadeesh.ca@spiher.ac.in",
-    expertise: ["Full Stack Development", "DevOps"]
+    expertise: ["Full Stack Development", "DevOps & CI/CD", "React & Node.js", "Containerization"],
+    courses: ["BCA Web Applications", "BCA (General) Programming", "DevOps Lab"],
+    office: "Lab Block, Room 104",
+    accent: "from-blue-600 via-indigo-600 to-violet-700"
   },
   {
-    name: "Ms. Subashini",
+    name: "Ms. Vinodha",
     role: "Assistant Professor",
-    bio: "Expert in database management systems and information security.",
-    email: "subashini.ca@spiher.ac.in",
-    expertise: ["DBMS", "Cyber Security"]
-  },
-  {
-    name: "Ms. Vinotha",
-    role: "Assistant Professor",
-    bio: "Specialist in mobile application development and user experience design.",
+    degrees: "M.C.A., M.Phil., B.Sc.",
+    specialization: "Mobile Application Dev & UI/UX Design",
+    category: "Cloud & Web",
+    experience: "10+ Years Experience",
     email: "vinotha.ca@spiher.ac.in",
-    expertise: ["Mobile App Dev", "UI/UX"]
+    expertise: ["Mobile App Development", "UI/UX Design Systems", "Android & iOS Architecture", "Human-Centered Design"],
+    courses: ["BCA Mobile Applications", "MCA Interactive Systems", "UI/UX Studio"],
+    office: "Lab Block, Room 105",
+    accent: "from-fuchsia-600 via-purple-600 to-indigo-700"
   },
   {
     name: "Ms. Vasanthi",
     role: "Assistant Professor",
-    bio: "Focuses on theoretical computer science and algorithm design.",
+    degrees: "M.C.A., M.Phil., B.Sc.",
+    specialization: "Design & Analysis of Algorithms & TOC",
+    category: "Algorithms & Core",
+    experience: "11+ Years Experience",
     email: "vasanthi.ca@spiher.ac.in",
-    expertise: ["Algorithms", "TOC"]
+    expertise: ["Design of Algorithms", "Theory of Computation (TOC)", "Data Structures", "Discrete Mathematics"],
+    courses: ["BCA Core Algorithms", "BCA Discrete Structures", "TOC Advanced"],
+    office: "Main Block, Room 208",
+    accent: "from-emerald-600 via-teal-600 to-cyan-700"
+  },
+  {
+    name: "Ms. Sharon",
+    role: "Assistant Professor",
+    degrees: "M.C.A., M.E. (Computer Science)",
+    specialization: "Deep Learning & Python Scientific Computing",
+    category: "AI & Data Science",
+    experience: "8+ Years Experience",
+    email: "sharon.ca@spiher.ac.in",
+    expertise: ["Deep Learning", "Python Scientific Computing", "Computer Vision", "Neural Networks"],
+    courses: ["BCA Artificial Intelligence", "MCA Deep Learning Lab", "Python Programming"],
+    office: "Lab Block, Room 108",
+    accent: "from-rose-600 via-pink-600 to-purple-700"
+  },
+  {
+    name: "Ms. Sasikala",
+    role: "Assistant Professor",
+    degrees: "M.C.A., M.Phil., B.Sc.",
+    specialization: "Web Technologies & Object-Oriented Systems",
+    category: "Cloud & Web",
+    experience: "9+ Years Experience",
+    email: "sasikala.ca@spiher.ac.in",
+    expertise: ["Web Technologies", "Java & OOP", "Service-Oriented Architecture", "RESTful APIs"],
+    courses: ["BCA (General)", "MCA Advanced Java", "Web Programming Lab"],
+    office: "Main Block, Room 209",
+    accent: "from-cyan-600 via-blue-600 to-indigo-700"
+  },
+  {
+    name: "Ms. Anandhi",
+    role: "Assistant Professor",
+    degrees: "M.C.A., M.E. (CSE)",
+    specialization: "Machine Learning & Natural Language Processing",
+    category: "AI & Data Science",
+    experience: "9+ Years Experience",
+    email: "anandhi.ca@spiher.ac.in",
+    expertise: ["Machine Learning", "Natural Language Processing (NLP)", "Predictive Modeling", "Data Analytics"],
+    courses: ["BCA Data Science", "MCA Statistical Computing", "NLP Workshop"],
+    office: "Lab Block, Room 109",
+    accent: "from-violet-600 via-purple-600 to-rose-700"
+  },
+  {
+    name: "Ms. Subashini",
+    role: "Assistant Professor",
+    degrees: "M.C.A., M.Phil., B.Sc.",
+    specialization: "Database Management Systems & Cyber Security",
+    category: "Systems & Security",
+    experience: "10+ Years Experience",
+    email: "subashini.ca@spiher.ac.in",
+    expertise: ["DBMS & SQL/NoSQL", "Cyber Security", "Information Cryptography", "Relational Database Design"],
+    courses: ["BCA Database Systems", "BCA Cyber Security Basics", "SQL Lab"],
+    office: "Lab Block, Room 106",
+    accent: "from-teal-600 via-emerald-600 to-indigo-700"
+  },
+  {
+    name: "Ms. Komadhi",
+    role: "Assistant Professor",
+    degrees: "M.C.A., M.Phil., B.Sc.",
+    specialization: "Computer Networks & Internet of Things (IoT)",
+    category: "Systems & Security",
+    experience: "8+ Years Experience",
+    email: "komadhi.ca@spiher.ac.in",
+    expertise: ["Computer Networks", "Internet of Things (IoT)", "Network Security Protocols", "Embedded Systems"],
+    courses: ["BCA Computer Networks", "BCA IoT Sensor Lab", "Network Security"],
+    office: "Main Block, Room 210",
+    accent: "from-amber-600 via-orange-600 to-rose-700"
   }
 ];
+
 export const TESTIMONIALS = [
   {
     name: "Sneha R.",
@@ -217,8 +320,12 @@ ${ACADEMIC_EVENTS.map(e => `- ${e.date}: ${e.title}
 
 Staff Members:
 ${FACULTY.map(f => `- ${f.name} (${f.role})
-  • Bio: ${f.bio}
-  • Expertise: ${f.expertise}
+  • Academic Degrees: ${f.degrees}
+  • Specialization: ${f.specialization}
+  • Experience: ${f.experience}
+  • Expertise: ${f.expertise.join(', ')}
+  • Courses Handled: ${f.courses.join(', ')}
+  • Office: ${f.office}
   • Contact: ${f.email}`).join('\n')}
 
 Student Testimonials & Success Stories:

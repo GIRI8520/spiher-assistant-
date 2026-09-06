@@ -1,1 +1,1 @@
-export const TypingIndicator = () => null;
+

@@ -1172,9 +1172,7 @@ const filteredFaculty = FACULTY.filter(member => {
                             </button>
                           </div>
 
-                          <button
-                            onClick={() => {
-                              setShowChat(true);
+                         
                                                       <button
                             onClick={() => {
                               setShowChat(true);
@@ -1186,10 +1184,7 @@ const filteredFaculty = FACULTY.filter(member => {
                             <span>Ask About {member.name.split(' ').slice(0, 2).join(' ')}</span>
                             <ChevronRight className="w-3.5 h-3.5 ml-auto text-white/50 group-hover/ask:translate-x-0.5 transition-transform" />
                           </button>
-                            <Bot className="w-3.5 h-3.5 text-amber-300" />
-                            <span>Ask About {member.name.split(' ').slice(0, 2).join(' ')}</span>
-                            <ChevronRight className="w-3.5 h-3.5 ml-auto text-white/50 group-hover/ask:translate-x-0.5 transition-transform" />
-                          </button>
+                           
                         </div>
                       </motion.div>
                     );

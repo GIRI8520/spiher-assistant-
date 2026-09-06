@@ -1,33 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback, Component, ErrorInfo, ReactNode } from 'react';
-import {
-  Send, Bot, User, Loader2, GraduationCap, Building2,
-  Users, BookOpen, Briefcase, Mic, MicOff, Volume2,
-  VolumeX, Sparkles, ChevronRight, Info, MapPin, Phone, Mail,
-  MessageCircle, X, Facebook, Twitter, Linkedin, RefreshCcw,
-  LogIn, LogOut, ClipboardCheck, Calendar, CheckCircle2, AlertCircle, ExternalLink, Search,
-  XCircle, Info as InfoIcon, Award, ShieldCheck, Copy, Check
-} from 'lucide-react';
+import { Send, Bot, User, Loader2, GraduationCap, Building2, Users, BookOpen, Briefcase, Mic, MicOff, Volume2, VolumeX, Sparkles, ChevronRight, Info, MapPin, Phone, Mail, MessageCircle, X, Facebook, Twitter, Linkedin, RefreshCcw, LogIn, LogOut, ClipboardCheck, Calendar, CheckCircle2, AlertCircle, ExternalLink, Search, XCircle, Info as InfoIcon, Award, ShieldCheck, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
 import { getChatResponse } from './services/gemini';
-import {
-  auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged,
-  doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc,
-  serverTimestamp, Timestamp, OperationType, handleFirestoreError,
-  FirestoreErrorInfo
-} from './firebase';
+import { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp, OperationType, handleFirestoreError, FirestoreErrorInfo } from './firebase';
 import { FACULTY, FacultyMember } from './constants';
+import { VoiceVisualizer } from './components/VoiceVisualizer';
+import { TypingIndicator } from './components/TypingIndicator';
 
 type NotificationType = 'success' | 'error' | 'info';
 interface Notification { message: string; type: NotificationType; id: number; }
 interface Message { id: string; role: 'user' | 'model'; text: string; timestamp: Date; audioUrl?: string; }
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-    aistudio: { openSelectKey: () => Promise<void>; hasSelectedApiKey: () => Promise<boolean>; };
-  }
-}
+declare global { interface Window { SpeechRecognition: any; webkitSpeechRecognition: any; aistudio: { openSelectKey: () => Promise<void>; hasSelectedApiKey: () => Promise<boolean>; }; } }
 interface ErrorBoundaryProps { children: ReactNode; }
 interface ErrorBoundaryState { hasError: boolean; error: Error | null; }
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -42,6 +26,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <div className="w-20 h-20 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center mx-auto"><X className="w-10 h-10" /></div>
             <div className="space-y-2"><h1 className="text-2xl font-bold text-slate-900 tracking-tight">Something went wrong</h1><p className="text-slate-500 text-sm leading-relaxed">We encountered an unexpected error. Please try refreshing the page.</p></div>
             <button onClick={() => window.location.reload()} className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-600/20 transition-all">Refresh Page</button>
+            {process.env.NODE_ENV!== 'production' && (<div className="mt-4 p-4 bg-slate-100 rounded-xl text-left overflow-auto max-h-40"><code className="text-[10px] text-slate-600 font-mono">{this.state.error?.toString()}</code></div>)}
           </div>
         </div>
       );
@@ -90,28 +75,26 @@ function AppContent() {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
-  const notify = useCallback((message: string, type: NotificationType = 'info') => {
-    const id = Date.now(); setNotifications(prev => [...prev, { id, message, type }]); setTimeout(() => { setNotifications(prev => prev.filter(n => n.id!== id)); }, 5000);
-  }, []);
+  const notify = useCallback((message: string, type: NotificationType = 'info') => { const id = Date.now(); setNotifications(prev => [...prev, { id, message, type }]); setTimeout(() => { setNotifications(prev => prev.filter(n => n.id!== id)); }, 5000); }, []);
   const handleCopyMessage = (msgId: string, text: string) => { navigator.clipboard.writeText(text); setCopiedMessageId(msgId); notify("Response copied to clipboard!", "success"); setTimeout(() => setCopiedMessageId(null), 2500); };
 
-  // FIXED FILTER - SAFE FOR BOTH OLD AND NEW CONSTANTS
+  // FIXED - SAFE FOR OLD constants.ts
   const filteredFaculty = FACULTY.filter(member => {
     const m = member as any;
     const matchesCategory = facultyCategory === 'All' || m.category === facultyCategory ||!m.category;
     const query = facultySearch.trim().toLowerCase();
     if (!query) return matchesCategory;
-    const degrees = m.degrees || '';
+    const degrees = m.degrees || m.bio || '';
     const specialization = m.specialization || m.bio || '';
     const courses = m.courses || [];
     const expertise = m.expertise || [];
     return (
-      member.name.toLowerCase().includes(query) ||
-      degrees.toLowerCase().includes(query) ||
-      specialization.toLowerCase().includes(query) ||
-      member.role.toLowerCase().includes(query) ||
-      expertise.some((e: string) => (e || '').toLowerCase().includes(query)) ||
-      courses.some((c: string) => (c || '').toLowerCase().includes(query))
+      (member.name || '').toLowerCase().includes(query) ||
+      (degrees || '').toLowerCase().includes(query) ||
+      (specialization || '').toLowerCase().includes(query) ||
+      (member.role || '').toLowerCase().includes(query) ||
+      (expertise as string[]).some((e: string) => (e || '').toLowerCase().includes(query)) ||
+      (courses as string[]).some((c: string) => (c || '').toLowerCase().includes(query))
     );
   });
 
@@ -141,10 +124,7 @@ function AppContent() {
         try {
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) { setUserProfile(userDoc.data()); }
-          else {
-            const newProfile = { uid: currentUser.uid, displayName: currentUser.displayName || 'Student', email: currentUser.email, photoURL: currentUser.photoURL, role: 'student', createdAt: serverTimestamp(), };
-            await setDoc(userDocRef, newProfile); setUserProfile(newProfile); notify(`Welcome to SPIHER, ${currentUser.displayName}!`, "success");
-          }
+          else { const newProfile = { uid: currentUser.uid, displayName: currentUser.displayName || 'Student', email: currentUser.email, photoURL: currentUser.photoURL, role: 'student', createdAt: serverTimestamp(), }; await setDoc(userDocRef, newProfile); setUserProfile(newProfile); notify(`Welcome to SPIHER, ${currentUser.displayName}!`, "success"); }
         } catch (error: any) { notify("Failed to sync your profile with the database.", "error"); }
       } else { setUserProfile(null); setAttendanceRecords([]); }
       setIsAuthReady(true);
@@ -175,9 +155,7 @@ function AppContent() {
       recognitionRef.current.onend = () => { setIsListening(false); };
     }
   }, []);
-  const toggleListening = () => {
-    if (isListening) { recognitionRef.current?.stop(); } else { setInput(''); try { recognitionRef.current?.start(); setIsListening(true); } catch (e) { console.error("Speech recognition start error:", e); notify("Could not start microphone. Please check permissions.", "error"); } }
-  };
+  const toggleListening = () => { if (isListening) { recognitionRef.current?.stop(); } else { setInput(''); try { recognitionRef.current?.start(); setIsListening(true); } catch (e) { console.error("Speech recognition start error:", e); notify("Could not start microphone. Please check permissions.", "error"); } } };
   const handleOpenKeyDialog = async () => { if (window.aistudio?.openSelectKey) { try { await window.aistudio.openSelectKey(); } catch (_) {} setTimeout(() => { checkHealth(true); }, 1500); } else { setShowSetupGuide(true); } };
   const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); notify("Log in successful", "success"); } catch (error: any) { if (error.code === 'auth/popup-closed-by-user') { return; } console.error("Login failed", error); notify("Login failed: " + error.message, "error"); } };
   const handleLogout = async () => { try { await signOut(auth); setShowChat(false); setShowAttendance(false); notify("Logged out successfully", "info"); } catch (error: any) { console.error("Logout failed", error); notify("Logout failed: " + error.message, "error"); } };
@@ -230,9 +208,7 @@ function AppContent() {
     { icon: <Briefcase className="w-4 h-4" />, label: "Career Placements", query: "Tell me about placement details and recruiters." },
     { icon: <Building2 className="w-4 h-4" />, label: "Lab Facilities", query: "What lab facilities and infrastructure do you have?" },
   ];
-  if (!isAuthReady) {
-    return (<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="flex flex-col items-center gap-4"><div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><div className="text-slate-400 text-xs font-bold uppercase tracking-widest animate-pulse">Initializing SPIHER Portal...</div></div><NotificationToast notifications={notifications} removeNotification={(id) => setNotifications(prev => prev.filter(n => n.id!== id))} /></div>);
-  }
+  if (!isAuthReady) { return (<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="flex flex-col items-center gap-4"><div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><div className="text-slate-400 text-xs font-bold uppercase tracking-widest animate-pulse">Initializing SPIHER Portal...</div></div><NotificationToast notifications={notifications} removeNotification={(id) => setNotifications(prev => prev.filter(n => n.id!== id))} /></div>); }
   if (!showChat) {
     return (
       <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans overflow-hidden">
@@ -284,7 +260,7 @@ function AppContent() {
                   </div>
                 </div>
                 <div className="max-w-2xl mx-auto space-y-4">
-                  <div className="relative group"><div className="absolute inset-y-0 left-5 flex items-center pointer-events-none"><Search className={`w-5 h-5 transition-colors ${facultySearch? 'text-indigo-600' : 'text-slate-400'}`} /></div><input type="text" placeholder="Search faculty by name, specialization, degree (e.g. Ph.D., AI, Cloud, Python)..." value={facultySearch} onChange={(e) => setFacultySearch(e.target.value)} className="w-full pl-14 pr-12 py-4 bg-white border border-slate-200 rounded-3xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm" />{facultySearch && (<button onClick={() => setFacultySearch('')} className="absolute inset-y-0 right-5 flex items-center text-slate-400 hover:text-slate-700" title="Clear search"><X className="w-4 h-4" /></button>)}</div>
+                  <div className="relative group"><div className="absolute inset-y-0 left-5 flex items-center pointer-events-none"><Search className={`w-5 h-5 transition-colors ${facultySearch? 'text-indigo-600' : 'text-slate-400'}`} /></div><input type="text" placeholder="Search faculty by name, specialization, degree..." value={facultySearch} onChange={(e) => setFacultySearch(e.target.value)} className="w-full pl-14 pr-12 py-4 bg-white border border-slate-200 rounded-3xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm" />{facultySearch && (<button onClick={() => setFacultySearch('')} className="absolute inset-y-0 right-5 flex items-center text-slate-400 hover:text-slate-700" title="Clear search"><X className="w-4 h-4" /></button>)}</div>
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                     {[
                       { id: 'All', label: 'All Faculty', count: FACULTY.length },
@@ -300,11 +276,11 @@ function AppContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredFaculty.map((member, i) => {
                     const m = member as any;
-                    const isHOD = member.role.includes("HOD") &&!member.role.includes("Assistant");
-                    const isAsstHOD = member.role.includes("Assistant HOD");
+                    const isHOD = (member.role || '').includes("HOD") &&!(member.role || '').includes("Assistant");
+                    const isAsstHOD = (member.role || '').includes("Assistant HOD");
                     const accent = m.accent || 'from-indigo-500 to-violet-500';
-                    const experience = m.experience || '5+ Years';
-                    const degrees = m.degrees || member.role;
+                    const experience = m.experience || '10+ Years';
+                    const degrees = m.degrees || m.bio || member.role;
                     const specialization = m.specialization || m.bio || 'Computer Applications';
                     const expertise = m.expertise || [];
                     const courses = m.courses || [];
@@ -336,11 +312,10 @@ function AppContent() {
       </div>
     );
   }
-  // CHAT VIEW WOULD CONTINUE - KEEP YOUR EXISTING CHAT UI BELOW THIS IF NEEDED
-  // For brevity, re-use your original chat UI code here
+  // CHAT VIEW - ORIGINAL AI STUDIO CODE UNCHANGED
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="py-4 px-6 bg-white border-b border-slate-200 flex justify-between items-center"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><Bot className="w-6 h-6" /></div><div><h1 className="font-bold text-slate-900">SPIHER Assistant</h1><p className="text-[10px] text-slate-400 font-bold uppercase">AI Chat Active</p></div></div><button onClick={() => setShowChat(false)} className="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold">Back to Home</button></header>
+      <header className="py-4 px-6 bg-white border border-slate-200 flex justify-between items-center"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><Bot className="w-6 h-6" /></div><div><h1 className="font-bold text-slate-900">SPIHER Assistant</h1><p className="text-[10px] text-slate-400 font-bold uppercase">AI Chat Active</p></div></div><button onClick={() => setShowChat(false)} className="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold">Back to Home</button></header>
       <div className="flex-1 overflow-y-auto p-6 space-y-4">{messages.map((msg) => (<div key={msg.id} className={`flex gap-3 ${msg.role === 'user'? 'justify-end' : 'justify-start'}`}><div className={`max-w-[80%] p-4 rounded-2xl text-sm ${msg.role === 'user'? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}`}><Markdown>{msg.text}</Markdown></div></div>))}<div ref={messagesEndRef} /></div>
       <form onSubmit={handleSend} className="p-4 bg-white border-t border-slate-200 flex gap-3"><input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about courses, fees, faculty..." className="flex-1 px-4 py-3 bg-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" /><button type="submit" disabled={isLoading} className="p-3 bg-indigo-600 text-white rounded-2xl"><Send className="w-5 h-5" /></button></form>
       <NotificationToast notifications={notifications} removeNotification={(id) => setNotifications(prev => prev.filter(n => n.id!== id))} />

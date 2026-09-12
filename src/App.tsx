@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback, Component, ErrorInfo, ReactNode } from 'react';
 import { 
   Send, Bot, User, Loader2, GraduationCap, Building2, 
-  Users, BookOpen, Briefcase, Mic, MicOff, Volume2, 
-  VolumeX, Sparkles, ChevronRight, Info, MapPin, Phone, Mail,
+  Users, BookOpen, Briefcase, Mic, MicOff, Volume2, VolumeX,
+  Sparkles, ChevronRight, Info, MapPin, Phone, Mail,
   MessageCircle, X, Facebook, Twitter, Linkedin, RefreshCcw,
   LogIn, LogOut, ClipboardCheck, Calendar, CheckCircle2, AlertCircle, ExternalLink, Search,
   XCircle, Info as InfoIcon, Award, ShieldCheck, Copy, Check
@@ -202,18 +202,17 @@ function AppContent() {
     setTimeout(() => setCopiedMessageId(null), 2500);
   };
 
-const filteredFaculty = FACULTY.filter(member => {
-    const m = member as any;
-    const matchesCategory = facultyCategory === 'All' || m.category === facultyCategory || true;
+  const filteredFaculty = FACULTY.filter(member => {
+    const matchesCategory = facultyCategory === 'All' || member.category === facultyCategory;
     const query = facultySearch.trim().toLowerCase();
     if (!query) return matchesCategory;
     return (
       member.name.toLowerCase().includes(query) ||
-      (m.degrees || m.bio || '').toLowerCase().includes(query) ||
-      (m.specialization || m.bio || '').toLowerCase().includes(query) ||
+      member.degrees.toLowerCase().includes(query) ||
+      member.specialization.toLowerCase().includes(query) ||
       member.role.toLowerCase().includes(query) ||
-      (m.expertise || []).some((e: any) => e.toLowerCase().includes(query)) ||
-      (m.courses || []).some((c: any) => c.toLowerCase().includes(query))
+      member.expertise.some(e => e.toLowerCase().includes(query)) ||
+      member.courses.some(c => c.toLowerCase().includes(query))
     );
   });
 
@@ -675,6 +674,11 @@ const filteredFaculty = FACULTY.filter(member => {
       
       setMessages((prev) => [...prev, botMessage]);
       setIsLoading(false);
+
+      // Automatic voice assistant: speak the answer out loud if voice is enabled
+      if (isVoiceEnabled && responseText) {
+        handleToggleSpeakMessage(botMessageId, responseText);
+      }
     } catch (error: any) {
       console.error('Chat error:', error);
       const isPermissionError = error.message.includes('PERMISSION_DENIED') || error.message.includes('403');
@@ -700,8 +704,8 @@ const filteredFaculty = FACULTY.filter(member => {
   };
 
   const quickLinks = [
-    { icon: <Users className="w-4 h-4" />, label: "Faculty & Staff List", query: "Can you provide a full and detailed explanation of all BCA department faculty members and staff with their degrees, specializations, roles, and courses handled?" },
-    { icon: <GraduationCap className="w-4 h-4" />, label: "HOD & Leadership", query: "Who is the HOD and Assistant HOD of the BCA Department? Please explain their academic qualifications, experience, and research areas." },
+    { icon: <Users className="w-4 h-4" />, label: "Faculty & Staff List", query: "Can you list the BCA department faculty members with their roles and academic degrees?" },
+    { icon: <GraduationCap className="w-4 h-4" />, label: "HOD & Leadership", query: "Who is the HOD and Assistant HOD of the BCA Department? Please list their roles and academic degrees." },
     { icon: <BookOpen className="w-4 h-4" />, label: "Academic Programs", query: "What courses are offered in the BCA department?" },
     { icon: <Briefcase className="w-4 h-4" />, label: "Career Placements", query: "Tell me about placement details and recruiters." },
     { icon: <Building2 className="w-4 h-4" />, label: "Lab Facilities", query: "What lab facilities and infrastructure do you have?" },
@@ -1058,133 +1062,72 @@ const filteredFaculty = FACULTY.filter(member => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: i * 0.04 }}
                         whileHover={{ y: -4 }}
-                        className="group relative bg-white border border-slate-200 hover:border-indigo-400 rounded-3xl p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                        className="group relative bg-white border border-slate-200 hover:border-slate-400 rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden"
                       >
                         {/* Architectural Accent Line */}
-                        <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${member.accent}`} />
+                        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${member.accent}`} />
                         
                         {/* Content Container */}
-                        <div className="relative z-10 space-y-4">
-                          {/* Top Section: Avatar + Status Pill */}
-                          <div className="flex items-start justify-between gap-4">
+                        <div className="relative z-10 space-y-3">
+                          {/* Top Section: Avatar + Role Pill */}
+                          <div className="flex items-center justify-between gap-3">
                             <div className="relative">
-                              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${member.accent} p-0.5 shadow-sm`}>
-                                <div className="w-full h-full bg-white rounded-[13px] flex items-center justify-center font-display font-extrabold text-slate-900 text-base">
+                              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${member.accent} p-0.5 shadow-xs`}>
+                                <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center font-bold text-slate-900 text-sm">
                                   {member.name.replace(/(Dr\.|Mr\.|Ms\.)/g, '').trim().split(' ').map(n => n[0]).join('').slice(0, 3)}
                                 </div>
                               </div>
                               {isHOD && (
-                                <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white p-1 rounded-full shadow" title="Head of Department">
-                                  <Award className="w-3.5 h-3.5" />
+                                <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white p-0.5 rounded-full shadow" title="Head of Department">
+                                  <Award className="w-3 h-3" />
                                 </span>
                               )}
                               {isAsstHOD && (
-                                <span className="absolute -bottom-1 -right-1 bg-teal-600 text-white p-1 rounded-full shadow" title="Assistant Head of Department">
-                                  <ShieldCheck className="w-3.5 h-3.5" />
+                                <span className="absolute -bottom-1 -right-1 bg-teal-600 text-white p-0.5 rounded-full shadow" title="Assistant Head of Department">
+                                  <ShieldCheck className="w-3 h-3" />
                                 </span>
                               )}
                             </div>
 
-                            <div className="flex flex-col items-end gap-1">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-tech font-extrabold uppercase tracking-wider flex items-center gap-1.5 border ${
-                                isHOD 
-                                  ? 'bg-amber-50 text-amber-900 border-amber-300' 
-                                  : isAsstHOD 
-                                  ? 'bg-teal-50 text-teal-900 border-teal-300' 
-                                  : 'bg-indigo-50 text-indigo-900 border-indigo-200'
-                              }`}>
-                                {isHOD ? '👑 Department Head' : isAsstHOD ? '🛡️ Assistant HOD' : '📘 ' + member.role}
-                              </span>
-                              <span className="text-[11px] font-tech text-slate-400 font-medium">
-                                {member.experience}
-                              </span>
-                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                              isHOD 
+                                ? 'bg-amber-50 text-amber-900 border-amber-300' 
+                                : isAsstHOD 
+                                ? 'bg-teal-50 text-teal-900 border-teal-300' 
+                                : 'bg-slate-50 text-slate-800 border-slate-200'
+                            }`}>
+                              {isHOD ? '👑 Department Head' : isAsstHOD ? '🛡️ Assistant HOD' : member.role}
+                            </span>
                           </div>
 
-                          {/* Name & Academic Degrees */}
-                          <div className="space-y-1.5">
-                            <h3 className="text-xl font-display font-bold text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">
+                          {/* Name */}
+                          <div>
+                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-900 transition-colors leading-tight">
                               {member.name}
                             </h3>
-                            
-                            {/* Academic Degrees Pill */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 text-amber-300 rounded-xl text-xs font-semibold shadow-xs border border-slate-800">
-                              <GraduationCap className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                              <span className="tracking-tight font-medium text-xs">{member.degrees}</span>
-                            </div>
                           </div>
 
-                          {/* Key Expertise Chips */}
-                          <div className="space-y-1.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Core Expertise & Skills</p>
-                            <div className="flex flex-wrap gap-1.5">
-                           {(member.expertise || []).slice(0, 3).map((skill, sIdx) => (
-                                <span
-                                  key={sIdx}
-                                  className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[11px] font-medium border border-slate-200/70"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Courses Handled */}
-                          <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Courses Handled</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {((member as any).courses || []).slice(0, 2).map((course, cIdx) => (
-                                <span
-                                  key={cIdx}
-                                  className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md text-[10px] font-semibold border border-indigo-100"
-                                >
-                                  {course}
-                                </span>
-                              ))}
-                            </div>
+                          {/* Academic Degree Line ONLY */}
+                          <div className="pt-2 border-t border-slate-100">
+                            <p className="text-xs text-slate-600">
+                              <span className="font-semibold text-slate-800">Academic Degrees:</span> {member.degrees}
+                            </p>
                           </div>
                         </div>
 
-                        {/* Bottom Actions & Contact Info */}
-                        <div className="relative z-10 pt-4 mt-4 border-t border-slate-100 space-y-3">
-                          <div className="flex items-center justify-between text-xs text-slate-500">
-                            <div className="flex items-center gap-1.5 text-slate-600">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                              <span className="text-[11px] font-medium">{(member as any).office || 'BCA Department'}</span>
-                            </div>
-
-                            <button
-                              onClick={(e) => handleCopyEmail(member.email, e)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600 text-[11px] transition-colors group/btn"
-                              title="Copy email address"
-                            >
-                              {copiedEmail === member.email? (
-                                <>
-                                  <Check className="w-3 h-3 text-emerald-600" />
-                                  <span className="text-emerald-600 font-bold">Copied!</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3 h-3 text-slate-400 group-hover/btn:text-indigo-600" />
-                                  <span>{member.email}</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-
-                         
-                                                      <button
+                        {/* Bottom Action */}
+                        <div className="relative z-10 pt-3 mt-3 border-t border-slate-100">
+                          <button 
                             onClick={() => {
                               setShowChat(true);
-                              handleSend(undefined, `Tell me about ${member.name}, their specialization in ${(member as any).specialization || member.bio}, their degrees (${(member as any).degrees || member.role}), and courses handled.`);
+                              handleSend(undefined, `Tell me about ${member.name}, their role as ${member.role}, and their academic degrees: ${member.degrees}.`);
                             }}
-                            className="w-full py-2.5 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl text-xs font-tech font-bold transition-all shadow-xs flex items-center justify-center gap-2 group/ask"
+                            className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-1.5 group/ask"
                           >
                             <Bot className="w-3.5 h-3.5 text-amber-300" />
                             <span>Ask About {member.name.split(' ').slice(0, 2).join(' ')}</span>
                             <ChevronRight className="w-3.5 h-3.5 ml-auto text-white/50 group-hover/ask:translate-x-0.5 transition-transform" />
                           </button>
-                           
                         </div>
                       </motion.div>
                     );
@@ -1854,20 +1797,6 @@ const filteredFaculty = FACULTY.filter(member => {
               )
             )}
             <button 
-              onClick={() => setShowClearConfirm(true)}
-              className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
-              title="Clear Chat"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => setShowChat(false)}
-              className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 transition-all"
-              title="Back to Home"
-            >
-              <ChevronRight className="w-5 h-5 rotate-180" />
-            </button>
-            <button 
               onClick={() => {
                 if (isVoiceEnabled || isPlaying) {
                   stopSpeaking();
@@ -1883,6 +1812,20 @@ const filteredFaculty = FACULTY.filter(member => {
             >
               {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               <span className="text-xs font-semibold hidden sm:inline">{isVoiceEnabled ? "Voice On" : "Voice Off"}</span>
+            </button>
+            <button 
+              onClick={() => setShowClearConfirm(true)}
+              className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
+              title="Clear Chat"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setShowChat(false)}
+              className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 transition-all"
+              title="Back to Home"
+            >
+              <ChevronRight className="w-5 h-5 rotate-180" />
             </button>
           </div>
         </div>
@@ -2154,7 +2097,7 @@ const filteredFaculty = FACULTY.filter(member => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {[
                             { title: "BCA Programs & Fees", query: "What are the BCA courses offered and fee structures?" },
-                            { title: "Faculty Leadership & Staff", query: "Who is the HOD and what are the faculty profiles?" },
+                            { title: "Faculty Leadership & Degrees", query: "Who is the HOD and what are the faculty members' roles and academic degrees?" },
                             { title: "Placement Packages & Recruiters", query: "What is the highest package and who are the recruiters?" },
                             { title: "Student Portal & Attendance", query: "How do I check attendance and pay college fees online?" },
                           ].map((starter, sIdx) => (

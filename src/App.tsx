@@ -252,7 +252,7 @@ function AppContent() {
         "How to pay college fees online?",
         "What courses are available in BCA department?",
        
-    }
+    
     return [
       "BCA courses and fees?",
       "Who is the HOD of BCA department?",

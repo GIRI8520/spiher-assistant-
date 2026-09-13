@@ -228,15 +228,15 @@ function AppContent() {
     const lower = text.toLowerCase();
     if (lower.includes('faculty') || lower.includes('staff') || lower.includes('hod') || lower.includes('latha')) {
       return [
-        "What are the BCA courses offered?",
-        "What is the fee structure for BCA?",
-        "What is the highest package and placement details?"
+        "BCA Courses",
+        " fee structure ",
+        "Placements & Package"
       ];
     }
     if (lower.includes('fee') || lower.includes('cost') || lower.includes('pay') || lower.includes('course') || lower.includes('bca') || lower.includes('mca')) {
       return [
-        "Who is the HOD and faculty members?",
-        "What are the lab facilities available?",
+        "Faculty List",
+        "Lab Facilities",
         "How to check attendance on student portal?"
       ];
     }
@@ -255,7 +255,7 @@ function AppContent() {
       ];
     }
     return [
-      "What are the BCA courses and fees?",
+      "BCA courses and fees?",
       "Who is the HOD of BCA department?",
       "What is the highest placement package?"
     ];

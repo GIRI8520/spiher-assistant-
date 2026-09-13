@@ -247,19 +247,19 @@ function AppContent() {
         "What are the fees for BCA AI and Data Science?"
       ];
     }
-    if (lower.includes('portal') || lower.includes('attendance') || lower.includes('insproplus') || lower.includes('login')) {
+   if (lower.includes('portal') || lower.includes('attendance') || lower.includes('insproplus') || lower.includes('login')) {
       return [
         "How to pay college fees online?",
-        "What courses are available in BCA department?",
-       
-    
+        "What courses are available in BCA department?"
+      ];
+    }
+
     return [
       "BCA courses and fees?",
       "Who is the HOD of BCA department?",
       "What is the highest placement package?"
     ];
   };
-
   const checkHealth = useCallback(async (silent: boolean = false) => {
     setIsRefreshing(true);
     try {

@@ -251,8 +251,7 @@ function AppContent() {
       return [
         "How to pay college fees online?",
         "What courses are available in BCA department?",
-        "What sports and campus facilities are available?"
-      ];
+       
     }
     return [
       "BCA courses and fees?",

@@ -44,7 +44,7 @@ export async function getChatResponse(userMessage: string) {
 
     const ai = new GoogleGenAI({ apiKey });
     // PUTHU MODEL - ITHU THAAN MUKKIYAM DA!
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.6-flash";
     const chat = ai.chats.create({
       model,
       config: {
@@ -72,7 +72,7 @@ export async function getSpeechResponse(text: string) {
 
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: [{ parts: [{ text: `Read this naturally: ${cleanText}` }] }],
       config: {
         responseModalities: [Modality.AUDIO],

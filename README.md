@@ -5,7 +5,7 @@ An AI-powered conversational web application built for the Department of Compute
 ---
 
 ### 🌐 Live Application
-👉 [View Live Demo](https://spiher-assistant-f3sljmttc-giri8520s-projects.vercel.app/)
+👉 [View Live Demo](https://spiher-assistant-git-main-giri8520s-projects.vercel.app)
 
 ---
 
